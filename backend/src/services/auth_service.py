@@ -100,7 +100,7 @@ class AuthService:
         """
         Extract full_name, student_id, and college domain from student email.
         Example: rohit.21bcs101@collegename.ac.in
-        Returns: (full_name='Rohit', student_id='21BCS101', college_name='collegename.ac.in')
+        Returns: (full_name='Rohit', student_id='21BCS101', college_name='collegename')
         """
         email_clean = email.strip().lower()
         if "@" not in email_clean:
@@ -117,6 +117,9 @@ class AuthService:
             student_id = None
 
         college_name = domain.split(".")[0].upper()
+
+        if college_name not in ['GEHU', 'GEU']:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid email domain. Please use your official college email.")
 
         return full_name, student_id, college_name
 
