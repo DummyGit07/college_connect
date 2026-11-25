@@ -1,17 +1,23 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from src.config import settings
 from src.schemas import user
 from src.routers.login import router as login_router
 from src.routers.register import router as register_router
 
 app = FastAPI(title="College Connect API")
 
-# Allow requests from local frontend (and later production URL)
+# Allow requests from local frontend and configured production URL(s)
 origins = [
     "http://localhost:5173",  # Vite local dev
     "http://127.0.0.1:5173",  # Vite local dev
-    # vercel base url
 ]
+if settings.FRONTEND_URL:
+    origins.extend(
+        url.strip().rstrip("/")
+        for url in settings.FRONTEND_URL.split(",")
+        if url.strip()
+    )
 
 app.add_middleware(
     CORSMiddleware,
@@ -26,4 +32,4 @@ app.include_router(register_router)
 
 @app.get("/")
 def test():
-    return {"Status":"OK!!"}
+    return {"OK!!"}

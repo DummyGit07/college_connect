@@ -9,7 +9,6 @@ import {
   MessageCircle,
   Search,
   ShieldCheck,
-  Sparkles,
   UserPlus,
 } from 'lucide-react';
 import { Navbar } from '../components/Navbar';

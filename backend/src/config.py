@@ -19,6 +19,7 @@ class Settings(BaseSettings):
     # Application
     APP_NAME: str = "college"
     DEBUG: bool = False
+    FRONTEND_URL: str = ""
 
     # JWT
     SECRET_KEY: str
