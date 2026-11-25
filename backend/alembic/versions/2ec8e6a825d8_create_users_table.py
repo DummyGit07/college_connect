@@ -35,9 +35,9 @@ def upgrade() -> None:
         sa.Column('avatar_url', sa.String(), nullable=True),
         sa.Column('bio', sa.String(), nullable=True),
         sa.Column('role', sa.String(), nullable=True, server_default='student'),
-        sa.Column('is_active', sa.Boolean(), nullable=True, server_default=sa.text('1')),
-        sa.Column('is_verified', sa.Boolean(), nullable=True, server_default=sa.text('0')),
-        sa.Column('is_onboarded', sa.Boolean(), nullable=True, server_default=sa.text('0')),
+        sa.Column('is_active', sa.Boolean(), nullable=True, server_default=sa.true()),
+        sa.Column('is_verified', sa.Boolean(), nullable=True, server_default=sa.false()),
+        sa.Column('is_onboarded', sa.Boolean(), nullable=True, server_default=sa.false()),
         sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=True),
         sa.PrimaryKeyConstraint('id')
     )

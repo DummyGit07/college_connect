@@ -26,4 +26,4 @@ app.include_router(register_router)
 
 @app.get("/")
 def test():
-    return {"OK!!"}
+    return {"Status":"OK!!"}
