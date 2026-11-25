@@ -57,7 +57,7 @@ export function SignUpPage() {
     setError(null);
     try {
       await api.sendOtp(normalizedEmail);
-      setCooldown(30);
+      setCooldown(60);
       setStep(2);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Failed to send OTP.');
@@ -111,9 +111,8 @@ export function SignUpPage() {
             {[1, 2, 3].map((s) => (
               <div
                 key={s}
-                className={`h-1.5 flex-1 rounded-full transition-colors ${
-                  s <= step ? 'bg-violet-600' : 'bg-zinc-200 dark:bg-white/10'
-                }`}
+                className={`h-1.5 flex-1 rounded-full transition-colors ${s <= step ? 'bg-violet-600' : 'bg-zinc-200 dark:bg-white/10'
+                  }`}
               />
             ))}
           </div>
@@ -150,13 +149,24 @@ export function SignUpPage() {
                     className="w-full rounded-xl border border-zinc-200 bg-zinc-50 py-2.5 pl-10 pr-10 text-sm outline-none transition focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 dark:border-white/10 dark:bg-[#111318]"
                   />
                   {email.trim().length > 0 && (
-                    <span className="absolute right-3 top-1/2 -translate-y-1/2" title={emailCheck.reason || 'Valid'}>
-                      {emailCheck.valid ? (
+                    emailCheck.valid ? (
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2">
                         <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-                      ) : (
-                        <AlertCircle className="h-4 w-4 text-rose-400" />
-                      )}
-                    </span>
+                      </span>
+                    ) : (
+                      <div className="group absolute right-3 top-1/2 -translate-y-1/2">
+                        <button
+                          type="button"
+                          aria-label="Invalid email format"
+                          className="flex items-center text-rose-400 focus:outline-none cursor-help"
+                        >
+                          <AlertCircle className="h-4 w-4" />
+                        </button>
+                        <div className="pointer-events-none absolute right-0 bottom-full z-20 mb-2 w-max max-w-[230px] rounded-lg border border-zinc-200 bg-white px-2.5 py-1.5 text-[11px] font-medium text-zinc-700 opacity-0 shadow-md transition-opacity duration-150 group-hover:opacity-100 group-focus-within:opacity-100 dark:border-white/10 dark:bg-[#111318] dark:text-zinc-200">
+                          Format: name.id@gehu.ac.in  OR  name.id@geu.ac.in
+                        </div>
+                      </div>
+                    )
                   )}
                 </div>
 

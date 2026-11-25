@@ -33,7 +33,7 @@ class CheckUserIdResponse(BaseModel):
 
 class OnboardingRequest(BaseModel):
     """Step 4: Student completes their profile handle and academic details."""
-    user_id: str = Field(..., min_length=3, max_length=30, description="Unique public social handle (e.g. neeraj_07)")
+    user_id: str = Field(..., min_length=3, max_length=30, description="Unique public social handle (e.g. vinod07)")
     campus: str = Field(..., description="Campus chosen by the student")
     course: Optional[str] = Field(None, description="e.g. B.Tech, BCA, MBA")
     branch: Optional[str] = Field(None, description="e.g. Computer Science, Mechanical")

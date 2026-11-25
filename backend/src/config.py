@@ -36,7 +36,7 @@ class Settings(BaseSettings):
 
     # Rate Limiting
     DAILY_EMAIL_LIMIT: int = 300
-    OTP_COOLDOWN_SECONDS: int = 30
+    OTP_COOLDOWN_SECONDS: int = 60
     MAX_OTP_ATTEMPTS_PER_EMAIL: int = 3
     OTP_EXPIRE_MINUTES: int = 10
 

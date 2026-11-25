@@ -144,7 +144,7 @@ class AuthService:
         if existing_user:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="An account with this college email already exists. Please log in instead."
+                detail="An account with this college email already exists. Please Sign in instead."
             )
 
         # 3. Check Global Daily Quota in IST (Brevo 300 Limit)

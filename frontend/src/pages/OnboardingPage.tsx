@@ -129,7 +129,7 @@ export function OnboardingPage() {
                   maxLength={30}
                   value={userId}
                   onChange={(e) => setUserId(e.target.value.replace(/\s+/g, ''))}
-                  placeholder="neeraj_07"
+                  placeholder="vinod07"
                   className="w-full rounded-xl border border-zinc-200 bg-zinc-50 py-2.5 pl-8 pr-10 text-sm outline-none transition focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 dark:border-white/10 dark:bg-[#111318]"
                 />
                 <div className="absolute right-3 top-1/2 -translate-y-1/2">
@@ -160,11 +160,10 @@ export function OnboardingPage() {
                       key={c}
                       type="button"
                       onClick={() => setCampus(c)}
-                      className={`rounded-xl border px-3 py-2.5 text-sm font-medium transition cursor-pointer ${
-                        active
+                      className={`rounded-xl border px-3 py-2.5 text-sm font-medium transition cursor-pointer ${active
                           ? 'border-violet-500 bg-violet-600/15 text-violet-600 dark:text-violet-300'
                           : 'border-zinc-200 bg-zinc-50 text-zinc-700 hover:border-zinc-300 dark:border-white/10 dark:bg-[#111318] dark:text-zinc-300 dark:hover:border-white/20'
-                      }`}
+                        }`}
                     >
                       {c}
                     </button>

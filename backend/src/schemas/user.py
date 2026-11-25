@@ -15,7 +15,7 @@ class User(Base):
     full_name = Column(String, nullable=True)              # Extracted from email or entered
 
     # Onboarding fields (filled when user completes onboarding form)
-    user_id = Column(String, unique=True, index=True, nullable=True) # Unique handle/tag (e.g. "neeraj_07")
+    user_id = Column(String, unique=True, index=True, nullable=True) # Unique handle/tag (e.g. "vinod07")
     campus = Column(String, index=True, nullable=True)               # e.g. "Campus 1", "Campus 2", "Campus 3"
     course = Column(String, nullable=True)                           # e.g. "B.Tech"
     branch = Column(String, nullable=True)                           # e.g. "CSE"
