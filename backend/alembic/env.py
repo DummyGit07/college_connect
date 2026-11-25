@@ -10,6 +10,7 @@ from alembic import context
 from src.database.db import Base
 from src.schemas.user import User
 from src.schemas.otp import EmailOTP
+from src.schemas.post import Post, PostTag, PostVote, Comment, CommentVote
 from src.config import settings
 
 # this is the Alembic Config object, which provides
