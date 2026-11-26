@@ -1,8 +1,10 @@
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
+import { AnimatePresence, motion } from 'framer-motion';
 import {
   ArrowLeft,
   Check,
+  ChevronDown,
   ChevronRight,
   Copy,
   Loader2,
@@ -73,8 +75,11 @@ export function ProfilePage() {
   // Desktop defaults to 'general'; Mobile starts on menu (null) and opens a section on tap
   const [activeTab, setActiveTab] = useState<SectionKey>('general');
   const [mobileSection, setMobileSection] = useState<SectionKey | null>(null);
+  const [openGeneralCard, setOpenGeneralCard] = useState<'stats' | 'password' | null>(null);
 
   const [copiedHandle, setCopiedHandle] = useState(false);
+  const [themeToast, setThemeToast] = useState<{ id: number; message: string } | null>(null);
+  const themeToastTimerRef = useRef<number | null>(null);
 
   // General form state
   const [campus, setCampus] = useState('');
@@ -288,219 +293,301 @@ export function ProfilePage() {
     setMobileSection(section);
   };
 
-  const renderGeneralSection = () => (
-    <div className="space-y-6">
-      <form
-        onSubmit={handleSaveProfile}
-        className="rounded-2xl border border-zinc-200/90 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-[#191c24]"
-      >
-        <h2 className="text-base font-semibold text-zinc-900 dark:text-zinc-100">
-          Your Character Stats:
-        </h2>
+  useEffect(() => {
+    return () => {
+      if (themeToastTimerRef.current !== null) {
+        window.clearTimeout(themeToastTimerRef.current);
+      }
+    };
+  }, []);
 
-        {saveError && (
-          <div className="mt-4 rounded-xl border border-rose-500/30 bg-rose-500/10 px-3.5 py-2.5 text-xs text-rose-600 dark:text-rose-400">
-            {saveError}
-          </div>
-        )}
-        {saveMessage && (
-          <div className="mt-4 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3.5 py-2.5 text-xs text-emerald-600 dark:text-emerald-400">
-            {saveMessage}
-          </div>
-        )}
+  const handleSelectTheme = (nextTheme: 'light' | 'dark') => {
+    if (theme !== nextTheme) {
+      toggleTheme();
+    }
+    const message =
+      nextTheme === 'dark'
+        ? 'It\'s dark. Like your Career 💀'
+        : 'It\'s light. Unlike your future 😭';
+    const toastId = Date.now();
+    setThemeToast({ id: toastId, message });
+    if (themeToastTimerRef.current !== null) {
+      window.clearTimeout(themeToastTimerRef.current);
+    }
+    themeToastTimerRef.current = window.setTimeout(() => {
+      setThemeToast((prev) => (prev?.id === toastId ? null : prev));
+    }, 3300);
+  };
 
-        <div className="mt-5 space-y-4">
-          {/* Locked User ID */}
-          <div>
-            <label className="mb-1.5 block text-xs font-medium text-zinc-600 dark:text-zinc-400">
-              Your Anonymous ID
-            </label>
-            <div className="relative">
-              <input
-                type="text"
-                readOnly
-                value={profile?.user_id ? `@${profile.user_id}` : ''}
-                className="w-full cursor-not-allowed rounded-xl border border-zinc-200 bg-zinc-100/80 py-2.5 pl-3.5 pr-10 text-sm text-zinc-500 outline-none dark:border-white/10 dark:bg-[#111318]/70 dark:text-zinc-400"
-              />
-              <Lock className="pointer-events-none absolute right-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
-            </div>
-          </div>
+  const renderGeneralSection = () => {
+    const isStatsOpen = openGeneralCard === 'stats';
+    const isPasswordOpen = openGeneralCard === 'password';
+    const statsPreview = [
+      profile?.user_id ? `@${profile.user_id}` : null,
+      profile?.campus || null,
+      profile?.course || null,
+    ]
+      .filter(Boolean)
+      .join(' · ');
 
-          {/* Campus */}
-          <div>
-            <label className="mb-1.5 block text-xs font-medium text-zinc-600 dark:text-zinc-400">
-              Which Campus?
-            </label>
-            <div className="grid grid-cols-3 gap-2">
-              {CAMPUSES.map((c) => {
-                const selected = campus === c;
-                return (
-                  <button
-                    key={c}
-                    type="button"
-                    onClick={() => setCampus(c)}
-                    className={`min-h-[44px] rounded-xl border px-2 text-xs font-medium transition cursor-pointer ${selected
-                      ? 'border-violet-500 bg-violet-500/12 text-violet-700 dark:bg-violet-500/20 dark:text-violet-300'
-                      : 'border-zinc-200 bg-zinc-50 text-zinc-700 hover:bg-zinc-100 dark:border-white/10 dark:bg-[#111318] dark:text-zinc-300 dark:hover:bg-[#222631]'
-                      }`}
-                  >
-                    {c}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Course & Branch */}
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div>
-              <label className="mb-1.5 block text-xs font-medium text-zinc-600 dark:text-zinc-400">
-                Which Course?
-              </label>
-              <select
-                value={course}
-                onChange={(e) => setCourse(e.target.value)}
-                className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-3.5 py-2.5 text-sm outline-none transition focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 dark:border-white/10 dark:bg-[#111318]"
-              >
-                <option value="">Select course</option>
-                {COURSES.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="mb-1.5 block text-xs font-medium text-zinc-600 dark:text-zinc-400">
-                Which Branch?
-              </label>
-              <input
-                type="text"
-                maxLength={80}
-                value={branch}
-                onChange={(e) => setBranch(e.target.value)}
-                placeholder="e.g. CSE"
-                className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-3.5 py-2.5 text-sm outline-none transition focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 dark:border-white/10 dark:bg-[#111318]"
-              />
-            </div>
-          </div>
-
-          {/* Batch */}
-          <div>
-            <label className="mb-1.5 block text-xs font-medium text-zinc-600 dark:text-zinc-400">
-              Which Batch?
-            </label>
-            <input
-              type="text"
-              maxLength={40}
-              value={batch}
-              onChange={(e) => setBatch(e.target.value)}
-              placeholder="e.g. 2022-2026"
-              className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-3.5 py-2.5 text-sm outline-none transition focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 dark:border-white/10 dark:bg-[#111318]"
-            />
-          </div>
-
-          {/* Bio */}
-          <div>
-            <label className="mb-1.5 block text-xs font-medium text-zinc-600 dark:text-zinc-400">
-              Bio
-            </label>
-            <textarea
-              rows={3}
-              maxLength={300}
-              value={bio}
-              onChange={(e) => setBio(e.target.value)}
-              placeholder="Describe your existence in 150 characters..."
-              className="w-full resize-none rounded-xl border border-zinc-200 bg-zinc-50 px-3.5 py-2.5 text-sm outline-none transition focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 dark:border-white/10 dark:bg-[#111318]"
-            />
-          </div>
-
+    return (
+      <div className="space-y-4">
+        <div className="overflow-hidden rounded-2xl border border-zinc-200/90 bg-white shadow-sm dark:border-white/10 dark:bg-[#191c24]">
           <button
-            type="submit"
-            disabled={savingProfile || !hasProfileChanges || !campus}
-            className="inline-flex min-h-[44px] w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm shadow-violet-600/25 transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
+            type="button"
+            aria-expanded={isStatsOpen}
+            onClick={() => setOpenGeneralCard((prev) => (prev === 'stats' ? null : 'stats'))}
+            className="flex min-h-[60px] w-full items-center justify-between gap-3 px-5 py-4 text-left transition hover:bg-zinc-50 dark:hover:bg-white/[0.03] cursor-pointer"
           >
-            {savingProfile && <Loader2 className="h-4 w-4 animate-spin" />}
-            Lock it
+            <div className="min-w-0">
+              <h2 className="text-base font-semibold text-zinc-900 dark:text-zinc-100">
+                Your Character Stats:
+              </h2>
+              {statsPreview && (
+                <p className="mt-0.5 truncate text-xs text-zinc-500 dark:text-zinc-400">
+                  {statsPreview}
+                </p>
+              )}
+            </div>
+            <ChevronDown
+              className={`h-4 w-4 shrink-0 text-zinc-400 transition-transform duration-200 ${isStatsOpen ? 'rotate-180' : ''
+                }`}
+            />
           </button>
+
+          {isStatsOpen && (
+            <form
+              onSubmit={handleSaveProfile}
+              className="border-t border-zinc-200/80 px-5 pb-5 pt-4 dark:border-white/10"
+            >
+              {saveError && (
+                <div className="mb-4 rounded-xl border border-rose-500/30 bg-rose-500/10 px-3.5 py-2.5 text-xs text-rose-600 dark:text-rose-400">
+                  {saveError}
+                </div>
+              )}
+              {saveMessage && (
+                <div className="mb-4 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3.5 py-2.5 text-xs text-emerald-600 dark:text-emerald-400">
+                  {saveMessage}
+                </div>
+              )}
+
+              <div className="space-y-4">
+                {/* Locked User ID */}
+                <div>
+                  <label className="mb-1.5 block text-xs font-medium text-zinc-600 dark:text-zinc-400">
+                    Your Anonymous ID
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      readOnly
+                      value={profile?.user_id ? `@${profile.user_id}` : ''}
+                      className="w-full cursor-not-allowed rounded-xl border border-zinc-200 bg-zinc-100/80 py-2.5 pl-3.5 pr-10 text-sm text-zinc-500 outline-none dark:border-white/10 dark:bg-[#111318]/70 dark:text-zinc-400"
+                    />
+                    <Lock className="pointer-events-none absolute right-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
+                  </div>
+                </div>
+
+                {/* Campus */}
+                <div>
+                  <label className="mb-1.5 block text-xs font-medium text-zinc-600 dark:text-zinc-400">
+                    Which Campus?
+                  </label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {CAMPUSES.map((c) => {
+                      const selected = campus === c;
+                      return (
+                        <button
+                          key={c}
+                          type="button"
+                          onClick={() => setCampus(c)}
+                          className={`min-h-[44px] rounded-xl border px-2 text-xs font-medium transition cursor-pointer ${selected
+                            ? 'border-violet-500 bg-violet-500/12 text-violet-700 dark:bg-violet-500/20 dark:text-violet-300'
+                            : 'border-zinc-200 bg-zinc-50 text-zinc-700 hover:bg-zinc-100 dark:border-white/10 dark:bg-[#111318] dark:text-zinc-300 dark:hover:bg-[#222631]'
+                            }`}
+                        >
+                          {c}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Course & Branch */}
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <div>
+                    <label className="mb-1.5 block text-xs font-medium text-zinc-600 dark:text-zinc-400">
+                      Which Course?
+                    </label>
+                    <select
+                      value={course}
+                      onChange={(e) => setCourse(e.target.value)}
+                      className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-3.5 py-2.5 text-sm outline-none transition focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 dark:border-white/10 dark:bg-[#111318]"
+                    >
+                      <option value="">Select course</option>
+                      {COURSES.map((c) => (
+                        <option key={c} value={c}>
+                          {c}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="mb-1.5 block text-xs font-medium text-zinc-600 dark:text-zinc-400">
+                      Which Branch?
+                    </label>
+                    <input
+                      type="text"
+                      maxLength={80}
+                      value={branch}
+                      onChange={(e) => setBranch(e.target.value)}
+                      placeholder="e.g. CSE"
+                      className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-3.5 py-2.5 text-sm outline-none transition focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 dark:border-white/10 dark:bg-[#111318]"
+                    />
+                  </div>
+                </div>
+
+                {/* Batch */}
+                <div>
+                  <label className="mb-1.5 block text-xs font-medium text-zinc-600 dark:text-zinc-400">
+                    Which Batch?
+                  </label>
+                  <input
+                    type="text"
+                    maxLength={40}
+                    value={batch}
+                    onChange={(e) => setBatch(e.target.value)}
+                    placeholder="e.g. 2022-2026"
+                    className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-3.5 py-2.5 text-sm outline-none transition focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 dark:border-white/10 dark:bg-[#111318]"
+                  />
+                </div>
+
+                {/* Bio */}
+                <div>
+                  <label className="mb-1.5 block text-xs font-medium text-zinc-600 dark:text-zinc-400">
+                    Bio
+                  </label>
+                  <textarea
+                    rows={3}
+                    maxLength={300}
+                    value={bio}
+                    onChange={(e) => setBio(e.target.value)}
+                    placeholder="Describe your existence in 150 characters..."
+                    className="w-full resize-none rounded-xl border border-zinc-200 bg-zinc-50 px-3.5 py-2.5 text-sm outline-none transition focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 dark:border-white/10 dark:bg-[#111318]"
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={savingProfile || !hasProfileChanges || !campus}
+                  className="inline-flex min-h-[44px] w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm shadow-violet-600/25 transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
+                >
+                  {savingProfile && <Loader2 className="h-4 w-4 animate-spin" />}
+                  Lock it
+                </button>
+              </div>
+            </form>
+          )}
         </div>
-      </form>
 
-      {/* Change Password */}
-      <form
-        onSubmit={handleChangePassword}
-        className="rounded-2xl border border-zinc-200/90 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-[#191c24]"
-      >
-        <h2 className="text-base font-semibold text-zinc-900 dark:text-zinc-100">
-          Change Password
-        </h2>
-
-        {passwordError && (
-          <div className="mt-4 rounded-xl border border-rose-500/30 bg-rose-500/10 px-3.5 py-2.5 text-xs text-rose-600 dark:text-rose-400">
-            {passwordError}
-          </div>
-        )}
-        {passwordMessage && (
-          <div className="mt-4 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3.5 py-2.5 text-xs text-emerald-600 dark:text-emerald-400">
-            {passwordMessage}
-          </div>
-        )}
-
-        <div className="mt-4 space-y-3.5">
-          <div>
-            <label className="mb-1.5 block text-xs font-medium text-zinc-600 dark:text-zinc-400">
-              Current Password
-            </label>
-            <input
-              type="password"
-              required
-              value={currentPassword}
-              onChange={(e) => setCurrentPassword(e.target.value)}
-              className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-3.5 py-2.5 text-sm outline-none transition focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 dark:border-white/10 dark:bg-[#111318]"
-            />
-          </div>
-
-          <div>
-            <label className="mb-1.5 block text-xs font-medium text-zinc-600 dark:text-zinc-400">
-              New Password
-            </label>
-            <input
-              type="password"
-              required
-              minLength={8}
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-3.5 py-2.5 text-sm outline-none transition focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 dark:border-white/10 dark:bg-[#111318]"
-            />
-          </div>
-
-          <div>
-            <label className="mb-1.5 block text-xs font-medium text-zinc-600 dark:text-zinc-400">
-              Confirm New Password
-            </label>
-            <input
-              type="password"
-              required
-              minLength={8}
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-3.5 py-2.5 text-sm outline-none transition focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 dark:border-white/10 dark:bg-[#111318]"
-            />
-          </div>
-
+        {/* Change Password */}
+        <div className="overflow-hidden rounded-2xl border border-zinc-200/90 bg-white shadow-sm dark:border-white/10 dark:bg-[#191c24]">
           <button
-            type="submit"
-            disabled={changingPassword || !isPasswordFormFilled}
-            className="inline-flex min-h-[44px] w-full items-center justify-center gap-2 rounded-xl border border-zinc-300 bg-zinc-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/10 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200 cursor-pointer"
+            type="button"
+            aria-expanded={isPasswordOpen}
+            onClick={() =>
+              setOpenGeneralCard((prev) => (prev === 'password' ? null : 'password'))
+            }
+            className="flex min-h-[60px] w-full items-center justify-between gap-3 px-5 py-4 text-left transition hover:bg-zinc-50 dark:hover:bg-white/[0.03] cursor-pointer"
           >
-            {changingPassword && <Loader2 className="h-4 w-4 animate-spin" />}
-            Update Password
+            <div className="min-w-0">
+              <h2 className="text-base font-semibold text-zinc-900 dark:text-zinc-100">
+                Change Password
+              </h2>
+              <p className="mt-0.5 truncate text-xs text-zinc-500 dark:text-zinc-400">
+                Update your account password
+              </p>
+            </div>
+            <ChevronDown
+              className={`h-4 w-4 shrink-0 text-zinc-400 transition-transform duration-200 ${isPasswordOpen ? 'rotate-180' : ''
+                }`}
+            />
           </button>
+
+          {isPasswordOpen && (
+            <form
+              onSubmit={handleChangePassword}
+              className="border-t border-zinc-200/80 px-5 pb-5 pt-4 dark:border-white/10"
+            >
+              {passwordError && (
+                <div className="mb-4 rounded-xl border border-rose-500/30 bg-rose-500/10 px-3.5 py-2.5 text-xs text-rose-600 dark:text-rose-400">
+                  {passwordError}
+                </div>
+              )}
+              {passwordMessage && (
+                <div className="mb-4 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3.5 py-2.5 text-xs text-emerald-600 dark:text-emerald-400">
+                  {passwordMessage}
+                </div>
+              )}
+
+              <div className="space-y-3.5">
+                <div>
+                  <label className="mb-1.5 block text-xs font-medium text-zinc-600 dark:text-zinc-400">
+                    Current Password
+                  </label>
+                  <input
+                    type="password"
+                    required
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-3.5 py-2.5 text-sm outline-none transition focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 dark:border-white/10 dark:bg-[#111318]"
+                  />
+                </div>
+
+                <div>
+                  <label className="mb-1.5 block text-xs font-medium text-zinc-600 dark:text-zinc-400">
+                    New Password
+                  </label>
+                  <input
+                    type="password"
+                    required
+                    minLength={8}
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-3.5 py-2.5 text-sm outline-none transition focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 dark:border-white/10 dark:bg-[#111318]"
+                  />
+                </div>
+
+                <div>
+                  <label className="mb-1.5 block text-xs font-medium text-zinc-600 dark:text-zinc-400">
+                    Confirm New Password
+                  </label>
+                  <input
+                    type="password"
+                    required
+                    minLength={8}
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-3.5 py-2.5 text-sm outline-none transition focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 dark:border-white/10 dark:bg-[#111318]"
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={changingPassword || !isPasswordFormFilled}
+                  className="inline-flex min-h-[44px] w-full items-center justify-center gap-2 rounded-xl border border-zinc-300 bg-zinc-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/10 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200 cursor-pointer"
+                >
+                  {changingPassword && <Loader2 className="h-4 w-4 animate-spin" />}
+                  Update Password
+                </button>
+              </div>
+            </form>
+          )}
         </div>
-      </form>
-    </div>
-  );
+      </div >
+    );
+  };
 
   const renderSettingsSection = () => (
     <div className="rounded-2xl border border-zinc-200/90 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-[#191c24]">
@@ -509,9 +596,7 @@ export function ProfilePage() {
       <div className="mt-5 grid grid-cols-2 gap-3">
         <button
           type="button"
-          onClick={() => {
-            if (theme !== 'light') toggleTheme();
-          }}
+          onClick={() => handleSelectTheme('light')}
           className={`flex min-h-[48px] items-center justify-center gap-2 rounded-xl border px-4 py-3 text-sm font-medium transition cursor-pointer ${theme === 'light'
             ? 'border-violet-500 bg-violet-500/12 text-violet-700'
             : 'border-zinc-200 bg-zinc-50 text-zinc-700 hover:bg-zinc-100 dark:border-white/10 dark:bg-[#111318] dark:text-zinc-300 dark:hover:bg-[#222631]'
@@ -523,9 +608,7 @@ export function ProfilePage() {
 
         <button
           type="button"
-          onClick={() => {
-            if (theme !== 'dark') toggleTheme();
-          }}
+          onClick={() => handleSelectTheme('dark')}
           className={`flex min-h-[48px] items-center justify-center gap-2 rounded-xl border px-4 py-3 text-sm font-medium transition cursor-pointer ${theme === 'dark'
             ? 'border-violet-500 bg-violet-500/20 text-violet-300'
             : 'border-zinc-200 bg-zinc-50 text-zinc-700 hover:bg-zinc-100 dark:border-white/10 dark:bg-[#111318] dark:text-zinc-300'
@@ -535,7 +618,7 @@ export function ProfilePage() {
           Dark
         </button>
       </div>
-    </div>
+    </div >
   );
 
   const renderUsersSection = () => (
@@ -935,6 +1018,30 @@ export function ProfilePage() {
           </>
         )}
       </main>
+
+      <AnimatePresence>
+        {themeToast && (
+          <motion.div
+            key={themeToast.id}
+            role="status"
+            aria-live="polite"
+            initial={{ opacity: 0, y: 40, scale: 0.96 }}
+            animate={{
+              opacity: [0, 1, 1, 0],
+              y: [40, -10, -150, -210],
+              scale: [0.96, 1, 1, 0.98],
+            }}
+            transition={{
+              duration: 3.2,
+              times: [0, 0.12, 0.82, 1],
+              ease: 'linear',
+            }}
+            className="pointer-events-none fixed bottom-8 left-1/2 z-50 w-max max-w-[calc(100vw-2rem)] -translate-x-1/2 rounded-2xl border border-violet-500/40 bg-white px-6 py-3.5 text-center text-sm font-semibold text-zinc-900 shadow-xl shadow-violet-600/15 sm:text-base dark:border-violet-400/40 dark:bg-[#191c24] dark:text-zinc-100 dark:shadow-violet-500/20"
+          >
+            {themeToast.message}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

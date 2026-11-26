@@ -17,8 +17,8 @@ export interface FilterBarProps {
 const SORT_OPTIONS: { value: PostSort; label: string; icon: typeof Clock }[] = [
   { value: 'latest', label: 'Latest', icon: Clock },
   { value: 'trending', label: 'Peak', icon: Flame },
-  { value: 'most_liked', label: 'W', icon: ArrowBigUp },
-  { value: 'most_disliked', label: 'L', icon: ArrowBigDown },
+  { value: 'most_liked', label: 'Most W', icon: ArrowBigUp },
+  { value: 'most_disliked', label: 'Most L', icon: ArrowBigDown },
 ];
 
 const CAMPUSES = ['All', 'Bhimtal', 'Haldwani', 'Dehradun'] as const;

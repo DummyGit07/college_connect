@@ -744,8 +744,8 @@ export function HomePage() {
             aria-label="Create post"
             className="inline-flex h-10 items-center justify-center gap-1.5 rounded-full bg-gradient-to-r from-violet-600 to-indigo-600 px-4 text-xs font-semibold text-white shadow-sm shadow-violet-600/25 transition hover:brightness-110"
           >
-            <PlusSquare className="h-4 w-4" />
-            <span>Post</span>
+            {/* <PlusSquare className="h-4 w-4" /> */}
+            <span>Yapp</span>
           </button>
 
           <button
