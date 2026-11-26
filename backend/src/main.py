@@ -5,6 +5,7 @@ from src.schemas import user, post
 from src.routers.login import router as login_router
 from src.routers.register import router as register_router
 from src.routers.posts import router as posts_router
+from src.routers.ws import router as ws_router
 
 app = FastAPI(title="College Connect API")
 
@@ -31,6 +32,7 @@ app.add_middleware(
 app.include_router(login_router)
 app.include_router(register_router)
 app.include_router(posts_router)
+app.include_router(ws_router)
 
 @app.get("/")
 def test():

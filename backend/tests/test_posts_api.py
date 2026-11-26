@@ -131,7 +131,7 @@ def run_tests():
     most_disliked = posts_router.list_posts(db=db, user=student2, sort="most_disliked", limit=5).posts
     assert most_disliked[0].id == p_dislike
     trending = posts_router.list_posts(db=db, user=student2, sort="trending", limit=5).posts
-    assert trending[0].id == p_dislike  # max(0,2)=2 > max(1,0)=1
+    assert trending[0].id == p_dislike  # 0+2+0=2 > 1+0+0=1
 
     # Tag & campus filters
     crush_posts = posts_router.list_posts(db=db, user=student2, tag="crush", limit=30).posts
@@ -163,6 +163,11 @@ def run_tests():
     admin_feed = posts_router.list_posts(db=db, user=admin, limit=30).posts
     hidden_item = next(p for p in admin_feed if p.id == p_like)
     assert hidden_item.is_hidden is True and hidden_item.hidden_by == "author"
+
+    # Admin-only hidden_only filter
+    assert_raises_http(403, posts_router.list_posts, db=db, user=student2, hidden_only=True, limit=30)
+    hidden_only_feed = posts_router.list_posts(db=db, user=admin, hidden_only=True, limit=30).posts
+    assert len(hidden_only_feed) == 1 and hidden_only_feed[0].id == p_like and hidden_only_feed[0].is_hidden is True
 
     # Admin hard-deletes post
     assert posts_router.delete_post(p_like, db, admin).action == "deleted"

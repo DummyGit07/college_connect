@@ -1,7 +1,6 @@
 from datetime import datetime, timedelta, timezone
 from typing import Literal, Optional
 from fastapi import HTTPException, status
-from sqlalchemy import case
 from sqlalchemy.orm import Session
 
 from src.schemas.post import (
@@ -20,7 +19,16 @@ RETENTION_DAYS = 7
 CLEANUP_INTERVAL = timedelta(hours=1)
 _last_cleanup_at: Optional[datetime] = None
 
+IST = timezone(timedelta(hours=5, minutes=30))
+
 SortOption = Literal["latest", "most_liked", "most_disliked", "trending"]
+
+
+def to_ist(dt: datetime) -> datetime:
+    """Convert a datetime (naive treated as UTC) to IST (+05:30)."""
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    return dt.astimezone(IST)
 
 
 def _retention_cutoff() -> datetime:
@@ -174,7 +182,7 @@ def _serialize_posts(
             is_own_post=(p.author_id == user.id),
             is_hidden=bool(p.is_hidden),
             hidden_by=p.hidden_by if is_admin else None,
-            created_at=p.created_at,
+            created_at=to_ist(p.created_at),
         )
         for p in posts
     ]
@@ -186,6 +194,7 @@ def get_posts_feed(
     sort: SortOption = "latest",
     campus: Optional[str] = None,
     tag: Optional[str] = None,
+    hidden_only: bool = False,
     limit: int = 20,
     cursor: Optional[str] = None,
 ) -> tuple[list[PostResponse], Optional[str], bool]:
@@ -194,6 +203,8 @@ def get_posts_feed(
 
     if user.role != "admin":
         query = query.filter(Post.is_hidden.is_(False))
+    elif hidden_only:
+        query = query.filter(Post.is_hidden.is_(True))
 
     if campus and campus.strip().lower() != "all":
         query = query.filter(Post.campus == campus.strip())
@@ -237,10 +248,9 @@ def get_posts_feed(
             query = query.order_by(Post.likes_count.desc(), Post.id.desc())
         elif sort == "most_disliked":
             query = query.order_by(Post.dislikes_count.desc(), Post.id.desc())
-        else:  # trending: max of likes_count or dislikes_count
-            trending_score = case(
-                (Post.likes_count >= Post.dislikes_count, Post.likes_count),
-                else_=Post.dislikes_count,
+        else:  # trending: total engagement (likes + dislikes + comments)
+            trending_score = (
+                Post.likes_count + Post.dislikes_count + Post.comments_count
             )
             query = query.order_by(trending_score.desc(), Post.id.desc())
 
@@ -371,7 +381,7 @@ def _serialize_comments(
             is_own_comment=(c.author_id == user.id),
             is_hidden=bool(c.is_hidden),
             hidden_by=c.hidden_by if is_admin else None,
-            created_at=c.created_at,
+            created_at=to_ist(c.created_at),
         )
         for c in comments
     ]

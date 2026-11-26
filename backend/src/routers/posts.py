@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 from src.database.db import get_db
 from src.routers.login import get_current_user
 from src.schemas.post import (
+    Comment,
     CommentListResponse,
     CommentResponse,
     CommentVoteResponse,
@@ -12,6 +13,7 @@ from src.schemas.post import (
     CreatePostRequest,
     DeleteResponse,
     HideResponse,
+    Post,
     PostFeedResponse,
     PostResponse,
     PostVoteResponse,
@@ -19,6 +21,7 @@ from src.schemas.post import (
 )
 from src.schemas.user import User
 from src.services import post_service
+from src.services.ws_manager import ws_manager
 
 router = APIRouter(prefix="/api", tags=["posts"])
 
@@ -46,15 +49,22 @@ def list_posts(
     sort: post_service.SortOption = "latest",
     campus: Optional[str] = None,
     tag: Optional[str] = None,
+    hidden_only: Annotated[bool, Query()] = False,
     limit: int = Query(default=20, ge=1, le=50),
     cursor: Optional[str] = None,
 ):
+    if hidden_only and user.role != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin access required",
+        )
     posts, next_cursor, has_more = post_service.get_posts_feed(
         db=db,
         user=user,
         sort=sort,
         campus=campus,
         tag=tag,
+        hidden_only=hidden_only,
         limit=limit,
         cursor=cursor,
     )
@@ -67,9 +77,16 @@ def create_post(
     user: onboarded_user_dependency,
     payload: CreatePostRequest,
 ):
-    return post_service.create_post(
+    post = post_service.create_post(
         db=db, user=user, content=payload.content, tags=payload.tags
     )
+    ws_manager.broadcast_json_sync(
+        {
+            "type": "new_post",
+            "post": post.model_dump(mode="json", exclude={"my_vote", "is_own_post"}),
+        }
+    )
+    return post
 
 
 @router.post("/posts/{post_id}/vote", response_model=PostVoteResponse)
@@ -81,6 +98,14 @@ def vote_post(
 ):
     post, my_vote = post_service.vote_post(
         db=db, user=user, post_id=post_id, vote_type=payload.vote_type
+    )
+    ws_manager.broadcast_json_sync(
+        {
+            "type": "post_voted",
+            "post_id": post.id,
+            "likes_count": post.likes_count,
+            "dislikes_count": post.dislikes_count,
+        }
     )
     return PostVoteResponse(
         post_id=post.id,
@@ -97,6 +122,14 @@ def toggle_hide_post(
     user: onboarded_user_dependency,
 ):
     post = post_service.toggle_hide_post(db=db, user=user, post_id=post_id)
+    ws_manager.broadcast_json_sync(
+        {
+            "type": "post_hidden",
+            "post_id": post.id,
+            "is_hidden": bool(post.is_hidden),
+            "hidden_by": post.hidden_by,
+        }
+    )
     return HideResponse(id=post.id, is_hidden=bool(post.is_hidden), hidden_by=post.hidden_by)
 
 
@@ -107,6 +140,13 @@ def delete_post(
     user: onboarded_user_dependency,
 ):
     action = post_service.delete_post(db=db, user=user, post_id=post_id)
+    ws_manager.broadcast_json_sync(
+        {
+            "type": "post_deleted",
+            "post_id": post_id,
+            "action": action,
+        }
+    )
     return DeleteResponse(id=post_id, action=action)
 
 
@@ -137,9 +177,23 @@ def create_comment(
     user: onboarded_user_dependency,
     payload: CreateCommentRequest,
 ):
-    return post_service.create_comment(
+    comment = post_service.create_comment(
         db=db, user=user, post_id=post_id, content=payload.content
     )
+    comments_count = (
+        db.query(Post.comments_count).filter(Post.id == post_id).scalar() or 0
+    )
+    ws_manager.broadcast_json_sync(
+        {
+            "type": "new_comment",
+            "post_id": post_id,
+            "comments_count": comments_count,
+            "comment": comment.model_dump(
+                mode="json", exclude={"my_vote", "is_own_comment"}
+            ),
+        }
+    )
+    return comment
 
 
 @router.post("/comments/{comment_id}/vote", response_model=CommentVoteResponse)
@@ -151,6 +205,15 @@ def vote_comment(
 ):
     comment, my_vote = post_service.vote_comment(
         db=db, user=user, comment_id=comment_id, vote_type=payload.vote_type
+    )
+    ws_manager.broadcast_json_sync(
+        {
+            "type": "comment_voted",
+            "post_id": comment.post_id,
+            "comment_id": comment.id,
+            "likes_count": comment.likes_count,
+            "dislikes_count": comment.dislikes_count,
+        }
     )
     return CommentVoteResponse(
         comment_id=comment.id,
@@ -169,6 +232,15 @@ def toggle_hide_comment(
     comment = post_service.toggle_hide_comment(
         db=db, user=user, comment_id=comment_id
     )
+    ws_manager.broadcast_json_sync(
+        {
+            "type": "comment_hidden",
+            "post_id": comment.post_id,
+            "comment_id": comment.id,
+            "is_hidden": bool(comment.is_hidden),
+            "hidden_by": comment.hidden_by,
+        }
+    )
     return HideResponse(
         id=comment.id,
         is_hidden=bool(comment.is_hidden),
@@ -182,5 +254,24 @@ def delete_comment(
     db: db_dependency,
     user: onboarded_user_dependency,
 ):
+    comment_post_id = (
+        db.query(Comment.post_id).filter(Comment.id == comment_id).scalar()
+    )
     action = post_service.delete_comment(db=db, user=user, comment_id=comment_id)
+    if comment_post_id is not None:
+        comments_count = (
+            db.query(Post.comments_count)
+            .filter(Post.id == comment_post_id)
+            .scalar()
+            or 0
+        )
+        ws_manager.broadcast_json_sync(
+            {
+                "type": "comment_deleted",
+                "post_id": comment_post_id,
+                "comment_id": comment_id,
+                "action": action,
+                "comments_count": comments_count,
+            }
+        )
     return DeleteResponse(id=comment_id, action=action)
