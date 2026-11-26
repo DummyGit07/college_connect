@@ -16,7 +16,7 @@ export function Navbar() {
         </Link>
 
         <div className="flex items-center gap-2.5">
-          <ThemeToggle />
+          {!user && <ThemeToggle />}
 
           {user ? (
             <button
@@ -25,7 +25,7 @@ export function Navbar() {
               className="inline-flex items-center gap-1.5 rounded-full border border-zinc-300/80 bg-white px-3.5 py-1.5 text-sm font-medium text-zinc-700 transition hover:bg-zinc-100 dark:border-white/10 dark:bg-[#191c24] dark:text-zinc-300 dark:hover:bg-[#222631] cursor-pointer"
             >
               <LogOut className="h-3.5 w-3.5" />
-              Sign out
+              Peace Out ✌️
             </button>
           ) : (
             <>

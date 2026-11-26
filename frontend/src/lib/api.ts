@@ -43,6 +43,39 @@ export interface OnboardingPayload {
   bio?: string | null;
 }
 
+export interface SafeProfile {
+  user_id: string | null;
+  campus: string | null;
+  course: string | null;
+  branch: string | null;
+  batch: string | null;
+  bio: string | null;
+  role: string;
+}
+
+export interface UpdateProfilePayload {
+  campus?: string | null;
+  course?: string | null;
+  branch?: string | null;
+  batch?: string | null;
+  bio?: string | null;
+}
+
+export interface AdminUserItem {
+  id: number;
+  full_name: string | null;
+  student_id: string | null;
+  user_id: string | null;
+  campus: string | null;
+  role: string;
+  is_active: boolean;
+}
+
+export interface AdminUsersResponse {
+  users: AdminUserItem[];
+  total: number;
+}
+
 export const ALLOWED_TAGS = [
   'confession',
   'crush',
@@ -264,6 +297,44 @@ export const api = {
     }),
 
   getMe: () => request<UserProfile>('/api/auth/me'),
+
+  getSafeProfile: () => request<SafeProfile>('/api/profile/me'),
+
+  updateProfile: (payload: UpdateProfilePayload) =>
+    request<SafeProfile>('/api/profile/me', {
+      method: 'PATCH',
+      body: JSON.stringify(payload),
+    }),
+
+  changePassword: (current_password: string, new_password: string) =>
+    request<{ message: string }>('/api/profile/change-password', {
+      method: 'POST',
+      body: JSON.stringify({ current_password, new_password }),
+    }),
+
+  getAdminUsers: (params?: {
+    search?: string;
+    status_filter?: 'all' | 'active' | 'suspended';
+    limit?: number;
+    offset?: number;
+  }) => {
+    const query = new URLSearchParams();
+    if (params?.search) query.set('search', params.search);
+    if (params?.status_filter) query.set('status_filter', params.status_filter);
+    if (params?.limit !== undefined) query.set('limit', String(params.limit));
+    if (params?.offset !== undefined) query.set('offset', String(params.offset));
+    const qs = query.toString();
+    return request<AdminUsersResponse>(`/api/profile/users${qs ? `?${qs}` : ''}`);
+  },
+
+  setUserActiveStatus: (userId: number, is_active: boolean) =>
+    request<{ id: number; user_id: string | null; is_active: boolean }>(
+      `/api/profile/users/${userId}/suspend`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify({ is_active }),
+      }
+    ),
 
   getPosts: (params?: {
     sort?: PostSort;

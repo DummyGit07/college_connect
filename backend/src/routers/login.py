@@ -94,6 +94,12 @@ def login_for_access_token(db: db_dependency, login_request: LoginUserRequest):
     if not user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='Invalid username/email or password')
 
+    if not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail='Bro, You crossed the line. Account Suspended for few days.',
+        )
+
     token = create_access_token(user.email, user.id)
 
     return {

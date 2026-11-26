@@ -16,9 +16,9 @@ export interface FilterBarProps {
 
 const SORT_OPTIONS: { value: PostSort; label: string; icon: typeof Clock }[] = [
   { value: 'latest', label: 'Latest', icon: Clock },
-  { value: 'trending', label: 'Trending', icon: Flame },
-  { value: 'most_liked', label: 'Most Liked', icon: ArrowBigUp },
-  { value: 'most_disliked', label: 'Most Disliked', icon: ArrowBigDown },
+  { value: 'trending', label: 'Peak', icon: Flame },
+  { value: 'most_liked', label: 'W', icon: ArrowBigUp },
+  { value: 'most_disliked', label: 'L', icon: ArrowBigDown },
 ];
 
 const CAMPUSES = ['All', 'Bhimtal', 'Haldwani', 'Dehradun'] as const;
@@ -51,11 +51,10 @@ export function FilterBar({
                 onClick={() => onSortChange(value)}
                 title={label}
                 aria-pressed={active}
-                className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-xs font-medium transition-colors ${
-                  active
-                    ? 'bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-sm shadow-violet-600/25'
-                    : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200/80 dark:bg-[#111318] dark:text-zinc-400 dark:hover:bg-[#222631]'
-                }`}
+                className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-xs font-medium transition-colors ${active
+                  ? 'bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-sm shadow-violet-600/25'
+                  : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200/80 dark:bg-[#111318] dark:text-zinc-400 dark:hover:bg-[#222631]'
+                  }`}
               >
                 <Icon className="h-3.5 w-3.5" />
                 <span>{label}</span>
@@ -71,11 +70,10 @@ export function FilterBar({
               onClick={() => onHiddenOnlyChange(!hiddenOnly)}
               aria-pressed={hiddenOnly}
               title="Show hidden posts only"
-              className={`inline-flex h-8 items-center gap-1.5 rounded-full border px-2.5 text-xs font-medium transition-colors ${
-                hiddenOnly
-                  ? 'border-amber-500/30 bg-amber-500/15 text-amber-600 dark:text-amber-400'
-                  : 'border-zinc-200 bg-zinc-50 text-zinc-700 hover:bg-zinc-100 dark:border-white/10 dark:bg-[#111318] dark:text-zinc-300 dark:hover:bg-[#222631]'
-              }`}
+              className={`inline-flex h-8 items-center gap-1.5 rounded-full border px-2.5 text-xs font-medium transition-colors ${hiddenOnly
+                ? 'border-amber-500/30 bg-amber-500/15 text-amber-600 dark:text-amber-400'
+                : 'border-zinc-200 bg-zinc-50 text-zinc-700 hover:bg-zinc-100 dark:border-white/10 dark:bg-[#111318] dark:text-zinc-300 dark:hover:bg-[#222631]'
+                }`}
             >
               <EyeOff className="h-3.5 w-3.5" />
               <span>Hidden</span>
@@ -110,11 +108,10 @@ export function FilterBar({
           type="button"
           onClick={() => onTagChange('')}
           aria-pressed={tag === ''}
-          className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-medium transition-colors ${
-            tag === ''
-              ? 'bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-sm shadow-violet-600/25'
-              : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200/80 dark:bg-[#111318] dark:text-zinc-400 dark:hover:bg-[#222631]'
-          }`}
+          className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-medium transition-colors ${tag === ''
+            ? 'bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-sm shadow-violet-600/25'
+            : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200/80 dark:bg-[#111318] dark:text-zinc-400 dark:hover:bg-[#222631]'
+            }`}
         >
           All
         </button>
@@ -126,11 +123,10 @@ export function FilterBar({
               type="button"
               onClick={() => onTagChange(active ? '' : item)}
               aria-pressed={active}
-              className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-medium transition-colors ${
-                active
-                  ? 'bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-sm shadow-violet-600/25'
-                  : `${getTagBadgeClass(item)} hover:opacity-85`
-              }`}
+              className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-medium transition-colors ${active
+                ? 'bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-sm shadow-violet-600/25'
+                : `${getTagBadgeClass(item)} hover:opacity-85`
+                }`}
             >
               #{item}
             </button>

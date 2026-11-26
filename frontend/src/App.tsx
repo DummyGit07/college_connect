@@ -6,6 +6,7 @@ import { SignInPage } from './pages/SignInPage';
 import { SignUpPage } from './pages/SignUpPage';
 import { OnboardingPage } from './pages/OnboardingPage';
 import { HomePage } from './pages/HomePage';
+import { ProfilePage } from './pages/ProfilePage';
 
 export function App() {
   return (
@@ -18,6 +19,7 @@ export function App() {
             <Route path="/signup" element={<SignUpPage />} />
             <Route path="/onboarding" element={<OnboardingPage />} />
             <Route path="/home" element={<HomePage />} />
+            <Route path="/profile" element={<ProfilePage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </BrowserRouter>

@@ -92,7 +92,7 @@ export function PostCard({
             className="h-[18px] w-[18px] shrink-0 fill-white text-zinc-900 dark:fill-transparent dark:text-white"
             aria-hidden="true"
           />
-          <span className="font-medium text-zinc-700 dark:text-zinc-300">Random from</span>
+          <span className="font-medium text-zinc-700 dark:text-zinc-300">Random NPC from</span>
           <span
             className={`rounded-md border px-1.5 py-0.5 text-[11px] font-medium ${getCampusBadgeClass(post.campus)}`}
           >

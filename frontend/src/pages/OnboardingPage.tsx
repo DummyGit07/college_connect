@@ -106,7 +106,7 @@ export function OnboardingPage() {
           transition={{ duration: 0.35 }}
           className="rounded-2xl border border-zinc-200/90 bg-white p-6 shadow-sm sm:p-8 dark:border-white/10 dark:bg-[#191c24]"
         >
-          <h1 className="text-2xl font-bold tracking-tight">Set up your handle</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Claim your handle</h1>
 
           {error && (
             <div className="mt-4 rounded-xl border border-rose-500/30 bg-rose-500/10 px-3.5 py-2.5 text-xs text-rose-500 dark:text-rose-400">
@@ -150,7 +150,7 @@ export function OnboardingPage() {
             {/* Compulsory: Campus */}
             <div>
               <label className="mb-2 block text-xs font-medium text-zinc-600 dark:text-zinc-400">
-                Campus <span className="text-rose-500">*</span>
+                Which Campus? <span className="text-rose-500">*</span>
               </label>
               <div className="grid grid-cols-3 gap-2.5">
                 {CAMPUSES.map((c) => {
@@ -161,8 +161,8 @@ export function OnboardingPage() {
                       type="button"
                       onClick={() => setCampus(c)}
                       className={`rounded-xl border px-3 py-2.5 text-sm font-medium transition cursor-pointer ${active
-                          ? 'border-violet-500 bg-violet-600/15 text-violet-600 dark:text-violet-300'
-                          : 'border-zinc-200 bg-zinc-50 text-zinc-700 hover:border-zinc-300 dark:border-white/10 dark:bg-[#111318] dark:text-zinc-300 dark:hover:border-white/20'
+                        ? 'border-violet-500 bg-violet-600/15 text-violet-600 dark:text-violet-300'
+                        : 'border-zinc-200 bg-zinc-50 text-zinc-700 hover:border-zinc-300 dark:border-white/10 dark:bg-[#111318] dark:text-zinc-300 dark:hover:border-white/20'
                         }`}
                     >
                       {c}
@@ -176,7 +176,7 @@ export function OnboardingPage() {
             <div className="grid gap-3.5 sm:grid-cols-2">
               <div>
                 <label className="mb-1.5 block text-xs font-medium text-zinc-600 dark:text-zinc-400">
-                  Course
+                  Which Arc?
                 </label>
                 <select
                   value={course}
@@ -194,7 +194,7 @@ export function OnboardingPage() {
 
               <div>
                 <label className="mb-1.5 block text-xs font-medium text-zinc-600 dark:text-zinc-400">
-                  Batch
+                  Which Era?
                 </label>
                 <input
                   type="text"
@@ -217,7 +217,7 @@ export function OnboardingPage() {
                 maxLength={160}
                 value={bio}
                 onChange={(e) => setBio(e.target.value)}
-                placeholder="Optional short bio..."
+                placeholder="Describe your existence..."
                 className="w-full resize-none rounded-xl border border-zinc-200 bg-zinc-50 px-3.5 py-2.5 text-sm outline-none transition focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 dark:border-white/10 dark:bg-[#111318]"
               />
             </div>
@@ -228,7 +228,7 @@ export function OnboardingPage() {
               className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-45 cursor-pointer"
             >
               {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
-              Continue
+              Let's get Started
             </button>
           </form>
         </motion.div>

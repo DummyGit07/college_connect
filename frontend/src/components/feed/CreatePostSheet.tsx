@@ -76,7 +76,7 @@ export function CreatePostSheet({ isOpen, onClose, onCreated }: CreatePostSheetP
       onCreated(created);
       onClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create post.');
+      setError(err instanceof Error ? err.message : 'Failed to create Yapp.');
     } finally {
       setSubmitting(false);
     }
@@ -99,7 +99,7 @@ export function CreatePostSheet({ isOpen, onClose, onCreated }: CreatePostSheetP
             id="create-post-title"
             className="text-sm font-semibold text-zinc-900 dark:text-zinc-100"
           >
-            New anonymous post
+            Yapp Something
           </h2>
           <button
             type="button"
@@ -119,7 +119,7 @@ export function CreatePostSheet({ isOpen, onClose, onCreated }: CreatePostSheetP
             onChange={(e) => setContent(e.target.value)}
             maxLength={MAX_CONTENT_LENGTH}
             rows={4}
-            placeholder="Share something with your campus..."
+            placeholder="Don't hold back..."
             className="w-full resize-none bg-transparent text-sm leading-relaxed text-zinc-900 placeholder:text-zinc-400 focus:outline-none dark:text-zinc-100 dark:placeholder:text-zinc-500"
           />
 
@@ -148,13 +148,12 @@ export function CreatePostSheet({ isOpen, onClose, onCreated }: CreatePostSheetP
                     onClick={() => toggleTag(tag)}
                     disabled={disabled}
                     aria-pressed={active}
-                    className={`rounded-full px-2.5 py-1 text-xs font-medium transition-colors ${
-                      active
-                        ? 'bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-sm shadow-violet-600/25'
-                        : disabled
-                          ? 'cursor-not-allowed bg-zinc-100/60 text-zinc-400 dark:bg-[#111318]/60 dark:text-zinc-600'
-                          : `${getTagBadgeClass(tag)} hover:opacity-85`
-                    }`}
+                    className={`rounded-full px-2.5 py-1 text-xs font-medium transition-colors ${active
+                      ? 'bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-sm shadow-violet-600/25'
+                      : disabled
+                        ? 'cursor-not-allowed bg-zinc-100/60 text-zinc-400 dark:bg-[#111318]/60 dark:text-zinc-600'
+                        : `${getTagBadgeClass(tag)} hover:opacity-85`
+                      }`}
                   >
                     #{tag}
                   </button>
@@ -198,7 +197,7 @@ export function CreatePostSheet({ isOpen, onClose, onCreated }: CreatePostSheetP
               className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-violet-600 to-indigo-600 px-4 py-1.5 text-xs font-semibold text-white shadow-sm shadow-violet-600/25 transition-opacity hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-40"
             >
               {submitting && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-              <span>{submitting ? 'Posting...' : 'Post'}</span>
+              <span>{submitting ? 'Dropping...' : 'Drop the Yapp'}</span>
             </button>
           </div>
         </form>

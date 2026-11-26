@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import {
   ArrowUp,
   Home,
@@ -48,6 +48,7 @@ function FeedSkeletonCard() {
 }
 
 export function HomePage() {
+  const navigate = useNavigate();
   const { user, isLoading } = useAuth();
 
   const [sort, setSort] = useState<PostSort>('latest');
@@ -70,6 +71,7 @@ export function HomePage() {
 
   const sentinelRef = useRef<HTMLDivElement>(null);
   const fetchIdRef = useRef(0);
+  const countedCommentIdsRef = useRef<Set<number>>(new Set());
 
   const isAdmin = user?.role === 'admin';
 
@@ -291,7 +293,22 @@ export function HomePage() {
             break;
           }
 
-          case 'new_comment':
+          case 'new_comment': {
+            countedCommentIdsRef.current.add(event.comment.id);
+            setPosts((prev) =>
+              prev.map((p) =>
+                p.id === event.post_id ? { ...p, comments_count: event.comments_count } : p
+              )
+            );
+            setActiveCommentsPost((prev) =>
+              prev && prev.id === event.post_id
+                ? { ...prev, comments_count: event.comments_count }
+                : prev
+            );
+            setLastWsEvent(event);
+            break;
+          }
+
           case 'comment_deleted': {
             setPosts((prev) =>
               prev.map((p) =>
@@ -496,7 +513,9 @@ export function HomePage() {
     }
   };
 
-  const handleCommentAdded = (postId: number) => {
+  const handleCommentAdded = (postId: number, commentId: number) => {
+    if (countedCommentIdsRef.current.has(commentId)) return;
+    countedCommentIdsRef.current.add(commentId);
     setPosts((prev) =>
       prev.map((p) => (p.id === postId ? { ...p, comments_count: p.comments_count + 1 } : p))
     );
@@ -539,7 +558,7 @@ export function HomePage() {
                 className="flex w-full items-center gap-3 rounded-xl bg-violet-500/12 px-3 py-2.5 text-sm font-medium text-violet-600 dark:bg-violet-500/15 dark:text-violet-400"
               >
                 <Home className="h-4 w-4" />
-                <span>Home</span>
+                <span>Feed</span>
               </button>
 
               <button
@@ -548,7 +567,7 @@ export function HomePage() {
                 className="flex w-full items-center gap-3 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-3 py-2.5 text-sm font-medium text-white shadow-sm shadow-violet-600/25 transition hover:brightness-110"
               >
                 <PlusSquare className="h-4 w-4" />
-                <span>Post</span>
+                <span>Yapp</span>
               </button>
 
               <button
@@ -559,19 +578,18 @@ export function HomePage() {
               >
                 <span className="flex items-center gap-3">
                   <MessageCircle className="h-4 w-4" />
-                  <span>Chat</span>
+                  <span>DMs</span>
                 </span>
                 <span className="h-1.5 w-1.5 rounded-full bg-zinc-400 dark:bg-zinc-600" />
               </button>
 
               <button
                 type="button"
-                disabled
-                title="Profile coming soon"
-                className="flex w-full cursor-not-allowed items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-zinc-400 opacity-60 dark:text-zinc-500"
+                onClick={() => navigate('/profile')}
+                className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-zinc-700 transition hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-[#222631] cursor-pointer"
               >
                 <User className="h-4 w-4" />
-                <span>Profile</span>
+                <span>Main Character</span>
               </button>
             </nav>
 
@@ -743,10 +761,9 @@ export function HomePage() {
 
           <button
             type="button"
-            disabled
-            title="Profile coming soon"
-            aria-label="Profile coming soon"
-            className="flex h-10 w-12 cursor-not-allowed items-center justify-center rounded-xl text-zinc-400 opacity-60 dark:text-zinc-500"
+            onClick={() => navigate('/profile')}
+            aria-label="Profile"
+            className="flex h-10 w-12 items-center justify-center rounded-xl text-zinc-600 transition hover:bg-zinc-200/70 dark:text-zinc-400 dark:hover:bg-white/10 cursor-pointer"
           >
             <User className="h-5 w-5" />
           </button>

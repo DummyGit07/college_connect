@@ -20,7 +20,7 @@ export interface CommentsSheetProps {
   isAdmin?: boolean;
   liveEvent?: FeedWsEvent | null;
   onClose: () => void;
-  onCommentAdded: (postId: number) => void;
+  onCommentAdded: (postId: number, commentId: number) => void;
 }
 
 const MAX_COMMENT_LENGTH = 2000;
@@ -61,7 +61,7 @@ function CommentsSheetContent({
   isAdmin: boolean;
   liveEvent: FeedWsEvent | null;
   onClose: () => void;
-  onCommentAdded: (postId: number) => void;
+  onCommentAdded: (postId: number, commentId: number) => void;
 }) {
   const [comments, setComments] = useState<CommentItem[]>([]);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
@@ -205,9 +205,14 @@ function CommentsSheetContent({
     setError(null);
     try {
       const created = await api.createComment(post.id, trimmed);
-      setComments((prev) => [created, ...prev]);
+      setComments((prev) => {
+        if (prev.some((c) => c.id === created.id)) {
+          return prev.map((c) => (c.id === created.id ? created : c));
+        }
+        return [created, ...prev];
+      });
       setNewComment('');
-      onCommentAdded(post.id);
+      onCommentAdded(post.id, created.id);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to post comment.');
     } finally {
@@ -283,7 +288,7 @@ function CommentsSheetContent({
               Comments
             </h2>
             {/* <p className="truncate text-xs text-zinc-500 dark:text-zinc-400">
-              random from {post.campus}
+              random NPC from {post.campus}
             </p> */}
           </div>
           <button
@@ -328,7 +333,7 @@ function CommentsSheetContent({
                           aria-hidden="true"
                         />
                         <span className="font-medium text-zinc-700 dark:text-zinc-300">
-                          Random from
+                          Random NPC from
                         </span>
                         <span
                           className={`rounded-md border px-1.5 py-0.5 text-[11px] font-medium ${getCampusBadgeClass(c.campus)}`}
